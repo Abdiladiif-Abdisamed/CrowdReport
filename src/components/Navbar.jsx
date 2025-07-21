@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Moon, Sun, Users, Menu, X } from 'lucide-react';
+import { Moon, Sun, Users, Menu, X, Home, Info, LayoutDashboard, Mail, FilePlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Navbar = () => {
@@ -9,11 +9,11 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/about', label: 'About' },
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/contact', label: 'Contact' },
-    { path: '/submit', label: 'Submit Report' },
+    { path: '/', label: 'Home', icon: <Home className="inline h-5 w-5 mr-1" /> },
+    { path: '/about', label: 'About', icon: <Info className="inline h-5 w-5 mr-1" /> },
+    { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="inline h-5 w-5 mr-1" /> },
+    { path: '/contact', label: 'Contact', icon: <Mail className="inline h-5 w-5 mr-1" /> },
+    { path: '/submit', label: 'Submit Report', icon: <FilePlus className="inline h-5 w-5 mr-1" /> },
   ];
 
   return (
@@ -34,12 +34,13 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
                   location.pathname === item.path
                     ? 'text-blue-400 bg-blue-900/20'
                     : 'text-gray-300 hover:text-blue-400'
                 }`}
               >
+                {item.icon}
                 {item.label}
               </Link>
             ))}
@@ -87,12 +88,13 @@ const Navbar = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMenuOpen(false)}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center ${
                   location.pathname === item.path
                     ? 'text-blue-400 bg-blue-900/20'
                     : 'text-gray-300 hover:text-blue-400'
                 }`}
               >
+                {item.icon}
                 {item.label}
               </Link>
             ))}

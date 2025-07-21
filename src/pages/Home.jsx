@@ -148,12 +148,12 @@ const Home = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-blue-600 dark:bg-blue-800">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold  mb-4  text-gray-900 dark:text-white">
             Ready to Make a Difference?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
             Join thousands of supporters making real impact in communities worldwide
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -166,7 +166,7 @@ const Home = () => {
             </Link>
             <Link
               to="/about"
-              className="inline-flex items-center px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
+              className="inline-flex items-center px-8 py-3 border-2 border-white dark:text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors text-blue-600"
             >
               Learn More
             </Link>
