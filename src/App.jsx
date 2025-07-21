@@ -10,10 +10,13 @@ import Contact from './pages/Contact';
 import SubmitReport from './pages/SubmitReport';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
+import {ProtectedRoute} from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
     <ThemeProvider>
+      <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
           <Navbar />
@@ -21,9 +24,17 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/submit" element={
+                <ProtectedRoute>
+                  <SubmitReport />
+                </ProtectedRoute>
+              } />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/submit" element={<SubmitReport />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/login" element={<Login />} />
             </Routes>
@@ -31,6 +42,7 @@ function App() {
           <Footer />
         </div>
       </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
