@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Contact from './pages/Contact';
 import SubmitReport from './pages/SubmitReport';
 import SignUp from './pages/SignUp';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/submit" element={<SubmitReport />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/login" element={<Login />} />
             </Routes>
           </main>
           <Footer />
