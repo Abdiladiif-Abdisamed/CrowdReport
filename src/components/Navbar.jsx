@@ -8,6 +8,7 @@ const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+  // added navigation items icon 
   const navItems = [
     { path: '/', label: 'Home', icon: <Home className="inline h-5 w-5 mr-1" /> },
     { path: '/about', label: 'About', icon: <Info className="inline h-5 w-5 mr-1" /> },
