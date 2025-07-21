@@ -1,18 +1,18 @@
 import React from 'react';
-import { ArrowRight, Users, Shield, Clock, Zap, CheckCircle, Target, Globe } from 'lucide-react';
+import { ArrowRight, Users, Shield, Clock, Zap, CheckCircle, Target, Globe, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Real-time Support
-              <span className="block text-yellow-400">Coordination Platform</span>
+              <span className="block text-blue-400">Coordination Platform</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
               Connect supporters with communities in need. Submit offers, get routed to the right teams, and track impact in real-time.
@@ -20,17 +20,17 @@ const Home = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/submit"
-                className="inline-flex items-center px-8 py-3 bg-yellow-400 text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors"
+                className="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Submit Support Offer
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <Plus className="mr-2 h-5 w-5" />
+                Get Started
               </Link>
               <Link
                 to="/dashboard"
-                className="inline-flex items-center px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-colors"
+                className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-gray-300 font-semibold rounded-lg hover:bg-gray-300 hover:text-gray-900 transition-all duration-300"
               >
+                <Users className="mr-2 h-5 w-5" />
                 View Dashboard
-                <Users className="ml-2 h-5 w-5" />
               </Link>
             </div>
           </div>
