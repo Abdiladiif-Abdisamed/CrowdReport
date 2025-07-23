@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, UserPlus, Shield, CheckCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, Eye, EyeOff, UserPlus, Shield } from 'lucide-react';
+import supabase from '../lib/supabase';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,11 @@ const SignUp = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [supabaseError, setSupabaseError] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -23,8 +29,7 @@ const SignUp = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
-    // Clear error when user starts typing
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -35,48 +40,74 @@ const SignUp = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
     }
-    
+
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
-    
+
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = 'You must agree to the terms and conditions';
     }
-    
+
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSupabaseError(null);
     const newErrors = validateForm();
-    
+
     if (Object.keys(newErrors).length === 0) {
-      console.log('Form submitted:', formData);
-      alert('Account created successfully! Welcome to CrowdReport.');
-      // Here you would typically handle the signup process
+      setIsLoading(true);
+      try {
+        // Supabase sign up
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              userType: formData.userType
+            }
+          }
+        });
+
+        if (error) {
+          setSupabaseError(error.message || "Failed to create account. Please try again.");
+        } else {
+          setSuccess(true);
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+        }
+      } catch (err) {
+        setSupabaseError(err.message || "Failed to create account. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -97,6 +128,25 @@ const SignUp = () => {
     }
   ];
 
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <div className="text-green-500 text-5xl mb-4">✓</div>
+            <h2 className="text-2xl font-bold mb-2">Account Created!</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Your account has been created successfully. Please check your email for verification.
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              Redirecting to login page in a few seconds...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
@@ -115,6 +165,11 @@ const SignUp = () => {
 
         {/* Form */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+          {supabaseError && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+              {supabaseError}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* User Type Selection */}
             <div>
@@ -244,6 +299,7 @@ const SignUp = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -273,6 +329,7 @@ const SignUp = () => {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -310,9 +367,10 @@ const SignUp = () => {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              disabled={isLoading}
             >
               <UserPlus className="h-5 w-5" />
-              <span>Create Account</span>
+              <span>{isLoading ? 'Creating Account...' : 'Create Account'}</span>
             </button>
           </form>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import supabase from '../lib/supabase';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,10 @@ const Login = () => {
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [supabaseError, setSupabaseError] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +30,7 @@ const Login = () => {
         [name]: ''
       }));
     }
+    if (supabaseError) setSupabaseError(null);
   };
 
   const validateForm = () => {
@@ -43,14 +49,30 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      // Handle login logic here
-      console.log('Login submitted:', formData);
-      alert('Login successful! Welcome back.');
+      setIsLoading(true);
+      setSupabaseError(null);
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (error) {
+          setSupabaseError(error.message || "Failed to sign in. Please check your credentials.");
+        } else {
+          // Success
+          navigate('/');
+        }
+      } catch (err) {
+        setSupabaseError(err.message || "Failed to sign in. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -74,6 +96,11 @@ const Login = () => {
 
         {/* Form */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+          {supabaseError && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+              {supabaseError}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
@@ -131,8 +158,9 @@ const Login = () => {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              disabled={isLoading}
             >
-              <span>Login</span>
+              <span>{isLoading ? 'Signing in...' : 'Login'}</span>
             </button>
           </form>
 
