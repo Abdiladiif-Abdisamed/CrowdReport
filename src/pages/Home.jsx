@@ -166,7 +166,7 @@ const Home = () => {
             </Link>
             <Link
               to="/about"
-              className="inline-flex items-center px-8 py-3 border-2 border-white dark:text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors text-blue-600"
+              className="inline-flex items-center px-8 py-3 border-2 border-white dark:text-white font-semibold rounded-lg  hover:text-blue-600 transition-colors text-blue-600"
             >
               Learn More
             </Link>
