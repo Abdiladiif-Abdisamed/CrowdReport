@@ -1,34 +1,37 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, Upload, X, MapPin, Users, Clock, Tag, Send, CheckCircle } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+import { useAuth } from '../contexts/AuthContext';
+
+// Initialize Supabase client
+const supabase = createClient(
+  'https://hidhugwmgvdsefjemurn.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZGh1Z3dtZ3Zkc2VmamVtdXJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MTg5NTMsImV4cCI6MjA2ODQ5NDk1M30.81VK7rbvbOhgAQTh-6GfSpFvyBCjPqX-xhdTyylr_Iw'
+);
 
 const SubmitReport = () => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Step 1: Basic Info
     title: '',
     category: '',
     urgency: '',
     location: '',
     description: '',
-    
-    // Step 2: Details
     supportType: '',
     skills: [],
     timeCommitment: '',
     resources: '',
-    
-    // Step 3: Contact & Files
     contactName: '',
     contactEmail: '',
     contactPhone: '',
     files: [],
-    
-    // Step 4: Tags
     tags: []
   });
-
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const totalSteps = 4;
 
@@ -57,8 +60,8 @@ const SubmitReport = () => {
   ];
 
   const skillOptions = [
-    'Medical/Healthcare', 'Food Service', 'Construction', 'Transportation', 
-    'Translation', 'Childcare', 'Technology/IT', 'Legal', 
+    'Medical/Healthcare', 'Food Service', 'Construction', 'Transportation',
+    'Translation', 'Childcare', 'Technology/IT', 'Legal',
     'Project Management', 'Communication', 'Education', 'Other'
   ];
 
@@ -71,7 +74,7 @@ const SubmitReport = () => {
   ];
 
   const tagSuggestions = [
-    'urgent', 'family-friendly', 'seniors', 'children', 'disabilities', 
+    'urgent', 'family-friendly', 'seniors', 'children', 'disabilities',
     'remote-possible', 'night-shift', 'weekend', 'multilingual', 'experienced-needed'
   ];
 
@@ -81,7 +84,6 @@ const SubmitReport = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -122,7 +124,6 @@ const SubmitReport = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -151,7 +152,6 @@ const SubmitReport = () => {
 
   const validateStep = (step) => {
     const newErrors = {};
-    
     switch (step) {
       case 1:
         if (!formData.title.trim()) newErrors.title = 'Title is required';
@@ -178,7 +178,6 @@ const SubmitReport = () => {
         }
         break;
     }
-    
     return newErrors;
   };
 
@@ -195,12 +194,75 @@ const SubmitReport = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validateStep(currentStep);
     if (Object.keys(newErrors).length === 0) {
-      console.log('Form submitted:', formData);
-      alert('Thank you! Your support offer has been submitted successfully. We\'ll match you with relevant teams soon.');
-      // Reset form or redirect
+      if (!user) {
+        alert('You must be logged in to submit a support offer.');
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        // Upload files to Supabase Storage
+        let fileUrls = [];
+        for (const file of formData.files) {
+          const filePath = `${user.id}/${Date.now()}_${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from('support-files')
+            .upload(filePath, file);
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('support-files')
+            .getPublicUrl(filePath);
+          fileUrls.push(urlData.publicUrl);
+        }
+
+        // Insert report to Supabase
+        const { error: insertError } = await supabase
+          .from('support_reports')
+          .insert([{
+            title: formData.title,
+            category: formData.category,
+            urgency: formData.urgency,
+            location: formData.location,
+            description: formData.description,
+            support_type: formData.supportType,
+            skills: formData.skills,
+            time_commitment: formData.timeCommitment,
+            resources: formData.resources,
+            contact_name: formData.contactName,
+            contact_email: formData.contactEmail,
+            contact_phone: formData.contactPhone,
+            tags: formData.tags,
+            user_id: user.id,
+            files: fileUrls,
+          }]);
+        if (insertError) throw insertError;
+
+        setSubmitSuccess(true);
+        setFormData({
+          title: '',
+          category: '',
+          urgency: '',
+          location: '',
+          description: '',
+          supportType: '',
+          skills: [],
+          timeCommitment: '',
+          resources: '',
+          contactName: '',
+          contactEmail: '',
+          contactPhone: '',
+          files: [],
+          tags: []
+        });
+        setCurrentStep(1);
+      } catch (err) {
+        alert("Failed to submit: " + err.message);
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -613,7 +675,6 @@ const SubmitReport = () => {
               </div>
             </div>
 
-            {/* Summary */}
             <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Summary of Your Support Offer
@@ -668,10 +729,25 @@ const SubmitReport = () => {
     }
   };
 
+  if (submitSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <CheckCircle className="text-green-500 text-5xl mb-4 mx-auto" />
+            <h2 className="text-2xl font-bold mb-2">Support Offer Submitted!</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Thank you for your support. We'll match you with relevant teams soon.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Submit Support Offer
@@ -681,7 +757,6 @@ const SubmitReport = () => {
           </p>
         </div>
 
-        {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -699,11 +774,9 @@ const SubmitReport = () => {
           </div>
         </div>
 
-        {/* Form */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
           {renderStep()}
 
-          {/* Navigation Buttons */}
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
@@ -733,15 +806,15 @@ const SubmitReport = () => {
                 type="button"
                 onClick={handleSubmit}
                 className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                disabled={isSubmitting}
               >
                 <Send className="h-5 w-5" />
-                <span>Submit Offer</span>
+                <span>{isSubmitting ? 'Submitting...' : 'Submit Offer'}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Help Text */}
         <div className="mt-8 text-center">
           <p className="text-gray-600 dark:text-gray-400">
             Need help? <a href="/contact" className="text-blue-600 dark:text-blue-400 hover:underline">Contact our support team</a>
