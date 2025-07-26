@@ -10,6 +10,8 @@ const Dashboard = () => {
   const [reports, setReports] = useState([]);
   const [errorMsg, setErrorMsg] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [editingReport, setEditingReport] = useState(null);
+  const [updatedData, setUpdatedData] = useState({});
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -79,6 +81,49 @@ const Dashboard = () => {
     return colorMap[color] || colorMap.blue;
   };
 
+  const handleEdit = (report) => {
+    setEditingReport(report);
+    setUpdatedData({
+      title: report.title,
+      urgency: report.urgency,
+      contact_name: report.contact_name,
+      contact_email: report.contact_email,
+      support_type: report.support_type
+    });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase
+      .from('support_reports')
+      .update(updatedData)
+      .eq('id', editingReport.id);
+
+    if (error) {
+      console.error(error);
+      setErrorMsg('Failed to update report.');
+    } else {
+      setEditingReport(null);
+      setUpdatedData({});
+      alert('Report updated successfully!');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const { error } = await supabase
+      .from('support_reports')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+      setErrorMsg('Failed to delete report.');
+    } else {
+      setReports(reports.filter((report) => report.id !== id));
+      alert('Report deleted successfully!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,30 +159,144 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Active Reports</h2>
-            {reports.map((report) => (
-              <div key={report.id} className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{report.title}</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Priority:</strong> {report.priority}</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Status:</strong> {report.status}</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Location:</strong> {report.location}</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Volunteers:</strong> {report.volunteers}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="mb-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300"><strong>{activity.message}</strong></p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(activity.created_at).toLocaleString()}</p>
-              </div>
-            ))}
-          </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Active Reports</h2>
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                <th className="py-2 px-4 text-left">Title</th>
+                <th className="py-2 px-4 text-left">Urgency</th>
+                <th className="py-2 px-4 text-left">Status</th>
+                <th className="py-2 px-4 text-left">Contact</th>
+                <th className="py-2 px-4 text-left">Support Type</th>
+                <th className="py-2 px-4 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((report) => (
+                <tr key={report.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.title}</td>
+                  <td className="py-2 px-4">
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                      report.urgency === 'high' ? 'bg-red-500 text-white' :
+                      report.urgency === 'medium' ? 'bg-yellow-500 text-white' :
+                      'bg-green-500 text-white'
+                    }`}>
+                      {report.urgency}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    {report.status && Array.isArray(report.status) ? (
+                      report.status.map((status, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-200 dark:bg-blue-800 rounded-full text-xs mr-2 text-gray-900 dark:text-gray-100">
+                          {status}
+                        </span>
+                      ))
+                    ) : (
+                      <span className='text-gray-900 dark:text-gray-100'>No status available</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{report.contact_name}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{report.contact_email}</div>
+                  </td>
+                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.support_type}</td>
+                  <td className="py-2 px-4 flex space-x-2">
+                    <button onClick={() => handleEdit(report)} className="text-blue-500 hover:text-blue-700">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(report.id)} className="text-red-500 hover:text-red-700">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+
+        {editingReport && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-96">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Edit Report</h2>
+              <form onSubmit={handleUpdate}>
+                <div className="mb-4">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={updatedData.title || ''}
+                    onChange={(e) => setUpdatedData({ ...updatedData, title: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="urgency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Urgency Level</label>
+                  <select
+                    id="urgency"
+                    name="urgency"
+                    value={updatedData.urgency || ''}
+                    onChange={(e) => setUpdatedData({ ...updatedData, urgency: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="contact_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact Name</label>
+                  <input
+                    type="text"
+                    id="contact_name"
+                    name="contact_name"
+                    value={updatedData.contact_name || ''}
+                    onChange={(e) => setUpdatedData({ ...updatedData, contact_name: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="contact_email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact Email</label>
+                  <input
+                    type="email"
+                    id="contact_email"
+                    name="contact_email"
+                    value={updatedData.contact_email || ''}
+                    onChange={(e) => setUpdatedData({ ...updatedData, contact_email: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="support_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Support Type</label>
+                  <input
+                    type="text"
+                    id="support_type"
+                    name="support_type"
+                    value={updatedData.support_type || ''}
+                    onChange={(e) => setUpdatedData({ ...updatedData, support_type: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="flex space-x-4 mt-6">
+                  <button type="button" onClick={() => setEditingReport(null)} className="px-6 py-3 bg-gray-300 text-gray-800 rounded-md">Cancel</button>
+                  <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {errorMsg && <p className="mt-4 text-red-500">{errorMsg}</p>}
       </div>
     </div>
