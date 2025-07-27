@@ -3,12 +3,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { Moon, Sun, Users, Menu, X, Home, Info, LayoutDashboard, Mail, FilePlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { FaUserAlt } from 'react-icons/fa'; // Add this for the default user icon
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const { isLoggedIn, logout } = useAuth();
+  const [isDropDownOpen, setIsDropDownOpen] = React.useState(false); // Dropdown state for user profile
+  const { isLoggedIn, logout, profile } = useAuth(); // Use the profile from the context
+
+  // Get the avatar URL from the profile, or use default icon
+  const avatarUrl = profile?.avatar_url || null;
 
   // Public nav items
   const navItems = [
@@ -66,7 +71,41 @@ const Navbar = () => {
                 {item.label}
               </Link>
             ))}
-            {/* Signup/Login/Logout Button */}
+
+            {/* Profile and Sign Out */}
+            {isLoggedIn && (
+              <div className="relative">
+                <button 
+                  onClick={() => setIsDropDownOpen(!isDropDownOpen)} // Dropdown toggle onClick
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <div className="flex items-center">
+                    {/* User Profile */}
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="User Avatar" className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <FaUserAlt className="text-gray-400 w-8 h-8" />
+                    )}
+                    <span className="ml-2 text-white">{profile?.username || 'Profile'}</span>
+                  </div>
+                </button>
+                {/* Show dropdown only on click */}
+                {isDropDownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-md shadow-lg z-50">
+                    <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-700">Your Profile</Link>
+                    <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-gray-700">Manage Reports</Link> {/* Link updated */}
+                    <button 
+                      onClick={logout} 
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-700"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SignUp/Login/Logout Button */}
             {!isLoggedIn ? (
               <>
                 <Link
@@ -90,6 +129,7 @@ const Navbar = () => {
                 Logout
               </button>
             )}
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -102,6 +142,20 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
+            {/* User Profile */}
+            {isLoggedIn && (
+              <div className="flex items-center space-x-2">
+                <div>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="User Avatar" className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <FaUserAlt className="text-gray-400 w-8 h-8" />
+                  )}
+                </div>
+                <span className="text-white">{profile?.username}</span>
+              </div>
+            )}
+            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-md text-gray-300"
