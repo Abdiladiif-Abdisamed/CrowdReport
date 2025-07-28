@@ -3,14 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { Moon, Sun, Users, Menu, X, Home, Info, LayoutDashboard, Mail, FilePlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { FaUserAlt } from 'react-icons/fa'; // Add this for the default user icon
+import { FaUserAlt } from 'react-icons/fa'; // Default user icon
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isDropDownOpen, setIsDropDownOpen] = React.useState(false); // Dropdown state for user profile
-  const { isLoggedIn, logout, profile } = useAuth(); // Use the profile from the context
+  const { isLoggedIn, logout, profile } = useAuth(); // Get the user profile from context
 
   // Get the avatar URL from the profile, or use default icon
   const avatarUrl = profile?.avatar_url || null;
@@ -93,7 +93,7 @@ const Navbar = () => {
                 {isDropDownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-md shadow-lg z-50">
                     <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-700">Your Profile</Link>
-                    <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-gray-700">Manage Reports</Link> {/* Link updated */}
+                    <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-gray-700">Manage Reports</Link>
                     <button 
                       onClick={logout} 
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-700"
