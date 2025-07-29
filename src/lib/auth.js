@@ -1,64 +1,71 @@
 import supabase from './supabase'
 
 // SignUp function
-export const signUp = async (email, password, username="") => {
-  let { data, error } = await supabase.auth.signUp({
+
+// Signup function
+export const signUp = async (email, password, username) => {
+  const { user, error } = await supabase.auth.signUp({
     email: email,
     password: password,
   });
 
-  console.log("data", data);
-
-  if (data?.user) {
-    const { data: sessionData } = await supabase.auth.getSession();
-
-    if (!sessionData?.session) {
-      console.error("No session found after sign-up");
-      return data;
-    }
-
-    const displayName = username || email.split('@')[0];
-
-    const { data: profileData, error: profileError } = await supabase
-      .from('users')
-      .insert({
-        id: data.user.id,
-        email: email,
-        username: displayName,
-        avatar_url: null
-      })
-      .select()
-      .single();
-
-    if (profileError) {
-      throw new Error(profileError.message || "Failed to create profile");
-    } else {
-      console.log("profileData", profileData);
-    }
+  if (error) {
+    console.error("Error signing up:", error.message);
+    return;
   }
 
-  return data;
+  // Insert the user role into the 'user_roles' table after sign up (optional)
+  const { data, error: roleError } = await supabase.from("user_roles").insert([
+    { user_id: user.id, role_id: 1 }, // Assuming role_id: 1 is for Writers
+  ]);
+
+  if (roleError) {
+    console.error("Error assigning role:", roleError.message);
+  }
+
+  console.log("User signed up and role assigned:", data);
 };
 
+
 // SignIn function
-export const signIn = async (email, password) => {
+// Login function
+export const sigIn = async (email, password) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
     password: password,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error signing in:", error.message);
+    return;
+  }
 
-  if (data?.user) {
-    try {
-      const profile = await getUserProfile(data.user.id);
-      console.log("User profile:", profile);
-    } catch (profileError) {
-      console.error("Error fetching user profile:", profileError);
-      throw new Error(profileError.message || "Failed to sign in");
-    }
+  console.log("User logged in:", data);
+
+  // Check user role if necessary (optional)
+  const { data: userRole, error: roleError } = await supabase
+    .from("user_roles")
+    .select("role_id")
+    .eq("user_id", data.user.id)
+    .single();
+
+  if (roleError) {
+    console.error("Error fetching user role:", roleError.message);
+    return;
+  }
+
+  console.log("User role:", userRole);
+
+  // Here you can check for specific roles like Admin or Writer
+  if (userRole.role_id === 1) {
+    console.log("User is a Writer.");
+  } else if (userRole.role_id === 2) {
+    console.log("User is an Admin.");
+  } else {
+    console.log("User role is not recognized.");
   }
 };
+
 
 // Get user profile function
 export const getUserProfile = async (userId) => {
