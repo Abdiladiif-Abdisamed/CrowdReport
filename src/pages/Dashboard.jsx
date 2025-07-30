@@ -159,61 +159,66 @@ const handleDelete = async (id) => {
           ))}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Active Reports</h2>
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                <th className="py-2 px-4 text-left">Title</th>
-                <th className="py-2 px-4 text-left">Urgency</th>
-                <th className="py-2 px-4 text-left">Status</th>
-                <th className="py-2 px-4 text-left">Contact</th>
-                <th className="py-2 px-4 text-left">Support Type</th>
-                <th className="py-2 px-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((report) => (
-                <tr key={report.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.title}</td>
-                  <td className="py-2 px-4">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      report.urgency === 'high' ? 'bg-red-500 text-white' :
-                      report.urgency === 'medium' ? 'bg-yellow-500 text-white' :
-                      'bg-green-500 text-white'
-                    }`}>
-                      {report.urgency}
-                    </span>
-                  </td>
-                  <td className="py-2 px-4">
-                    {report.status && Array.isArray(report.status) ? (
-                      report.status.map((status, index) => (
-                        <span key={index} className="px-2 py-1 bg-blue-200 dark:bg-blue-800 rounded-full text-xs mr-2 text-gray-900 dark:text-gray-100">
-                          {status}
-                        </span>
-                      ))
-                    ) : (
-                      <span className='text-gray-900 dark:text-gray-100'>No status available</span>
-                    )}
-                  </td>
-                  <td className="py-2 px-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{report.contact_name}</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">{report.contact_email}</div>
-                  </td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.support_type}</td>
-                  <td className="py-2 px-4 flex space-x-2">
-                    <button onClick={() => handleEdit(report)} className="text-blue-500 hover:text-blue-700">
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(report.id)} className="text-red-500 hover:text-red-700">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Active Reports</h2>
+  
+  {/* Added overflow-x-auto for responsiveness */}
+  <div className="overflow-x-auto max-w-full">
+    <table className="min-w-full table-auto">
+      <thead>
+        <tr className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+          <th className="py-2 px-4 text-left">Title</th>
+          <th className="py-2 px-4 text-left">Urgency</th>
+          <th className="py-2 px-4 text-left">Status</th>
+          <th className="py-2 px-4 text-left">Contact</th>
+          <th className="py-2 px-4 text-left">Support Type</th>
+          <th className="py-2 px-4 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {reports.map((report) => (
+          <tr key={report.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.title}</td>
+            <td className="py-2 px-4">
+              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                report.urgency === 'high' ? 'bg-red-500 text-white' :
+                report.urgency === 'medium' ? 'bg-yellow-500 text-white' :
+                'bg-green-500 text-white'
+              }`}>
+                {report.urgency}
+              </span>
+            </td>
+            <td className="py-2 px-4">
+              {report.status && Array.isArray(report.status) ? (
+                report.status.map((status, index) => (
+                  <span key={index} className="px-2 py-1 bg-blue-200 dark:bg-blue-800 rounded-full text-xs mr-2 text-gray-900 dark:text-gray-100">
+                    {status}
+                  </span>
+                ))
+              ) : (
+                <span className='text-gray-900 dark:text-gray-100'>No status available</span>
+              )}
+            </td>
+            <td className="py-2 px-4">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">{report.contact_name}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{report.contact_email}</div>
+            </td>
+            <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{report.support_type}</td>
+            <td className="py-2 px-4 flex space-x-2">
+              <button onClick={() => handleEdit(report)} className="text-blue-500 hover:text-blue-700">
+                Edit
+              </button>
+              <button onClick={() => handleDelete(report.id)} className="text-red-500 hover:text-red-700">
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+   
+    </table>
+  </div>
+</div>
 
         {editingReport && (
           <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
