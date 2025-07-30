@@ -194,79 +194,82 @@ const SubmitReport = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = async () => {
-    const newErrors = validateStep(currentStep);
-    if (Object.keys(newErrors).length === 0) {
-      if (!user) {
-        alert('You must be logged in to submit a support offer.');
-        return;
-      }
-      setIsSubmitting(true);
-      try {
-        // Upload files to Supabase Storage
-        let fileUrls = [];
-        for (const file of formData.files) {
-          const filePath = `${user.id}/${Date.now()}_${file.name}`;
-          const { error: uploadError } = await supabase.storage
-            .from('support-files')
-            .upload(filePath, file);
-          if (uploadError) throw uploadError;
-
-          const { data: urlData } = supabase.storage
-            .from('support-files')
-            .getPublicUrl(filePath);
-          fileUrls.push(urlData.publicUrl);
-        }
-
-        // Insert report to Supabase
-        const { error: insertError } = await supabase
-          .from('support_reports')
-          .insert([{
-            title: formData.title,
-            category: formData.category,
-            urgency: formData.urgency,
-            location: formData.location,
-            description: formData.description,
-            support_type: formData.supportType,
-            skills: formData.skills,
-            time_commitment: formData.timeCommitment,
-            resources: formData.resources,
-            contact_name: formData.contactName,
-            contact_email: formData.contactEmail,
-            contact_phone: formData.contactPhone,
-            tags: formData.tags,
-            user_id: user.id,
-            files: fileUrls,
-          }]);
-        if (insertError) throw insertError;
-
-        setSubmitSuccess(true);
-        setFormData({
-          title: '',
-          category: '',
-          urgency: '',
-          location: '',
-          description: '',
-          supportType: '',
-          skills: [],
-          timeCommitment: '',
-          resources: '',
-          contactName: '',
-          contactEmail: '',
-          contactPhone: '',
-          files: [],
-          tags: []
-        });
-        setCurrentStep(1);
-      } catch (err) {
-        alert("Failed to submit: " + err.message);
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      setErrors(newErrors);
+ const handleSubmit = async () => {
+  // Validate all fields before submitting
+  const newErrors = validateStep(currentStep);
+  if (Object.keys(newErrors).length === 0) {
+    if (!user) {
+      alert('You must be logged in to submit a support offer.');
+      return;
     }
-  };
+    setIsSubmitting(true);
+    try {
+      // Upload files to Supabase Storage
+      let fileUrls = [];
+      for (const file of formData.files) {
+        const filePath = `${user.id}/${Date.now()}_${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('support-files')
+          .upload(filePath, file);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('support-files')
+          .getPublicUrl(filePath);
+        fileUrls.push(urlData.publicUrl);
+      }
+
+      // Insert report to Supabase
+      const { error: insertError } = await supabase
+        .from('support_reports')
+        .insert([{
+          title: formData.title,
+          category: formData.category,
+          urgency: formData.urgency,
+          location: formData.location,
+          description: formData.description,
+          support_type: formData.supportType,
+          skills: formData.skills,
+          time_commitment: formData.timeCommitment,
+          resources: formData.resources,
+          contact_name: formData.contactName,
+          contact_email: formData.contactEmail,
+          contact_phone: formData.contactPhone,
+          tags: formData.tags,
+          user_id: user.id, // user_id is added here
+          files: fileUrls,
+        }]);
+
+      if (insertError) throw insertError;
+
+      setSubmitSuccess(true);
+      setFormData({
+        title: '',
+        category: '',
+        urgency: '',
+        location: '',
+        description: '',
+        supportType: '',
+        skills: [],
+        timeCommitment: '',
+        resources: '',
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        files: [],
+        tags: []
+      });
+      setCurrentStep(1);
+    } catch (err) {
+      alert("Failed to submit: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  } else {
+    setErrors(newErrors);
+  }
+};
+
 
   const getUrgencyColor = (urgency) => {
     switch (urgency) {

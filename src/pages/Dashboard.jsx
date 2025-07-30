@@ -109,20 +109,20 @@ const Dashboard = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    const { error } = await supabase
-      .from('support_reports')
-      .delete()
-      .eq('id', id);
+const handleDelete = async (id) => {
+  const { data, error } = await supabase
+    .from('support_reports')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error(error);
-      setErrorMsg('Failed to delete report.');
-    } else {
-      setReports(reports.filter((report) => report.id !== id));
-      alert('Report deleted successfully!');
-    }
-  };
+  if (error) {
+    console.error(error);
+    setErrorMsg('Failed to delete report.');
+  } else {
+    setReports(reports.filter((report) => report.id !== id));
+    alert('Report deleted successfully!');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
